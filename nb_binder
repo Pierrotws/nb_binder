@@ -1,0 +1,32 @@
+#!/bin/bash
+
+NB_PATH=`which nb`
+
+binder="$1"
+startf="$2"
+endf="$3"
+
+if [ -n "$startf" ] && [ "$startf" -eq "$startf" ] 2>/dev/null; then
+  echo "#Setting initial cycle to user-defined $startf"
+else
+  startf="0"
+  echo "#Setting initial cycle to default $startf"
+fi
+if [ -n "$endf" ] && [ "$endf" -eq "$endf" ] 2>/dev/null; then
+  echo "#Setting initial cycle to user-defined $startf"
+else
+  endf=$((startf + 10))
+  echo "#Setting final cycle to default $endf"
+fi
+
+cat<<EOT > /tmp/nbtest.yaml
+statements:
+ - |
+   {i}: {b}
+bindings:
+ i: Identity()
+ b: $binder
+
+EOT
+
+${NB_PATH} run 'driver=stdout' 'workload=/tmp/nbtest.yaml' "cycles=$startf..$endf" --show-stacktraces
